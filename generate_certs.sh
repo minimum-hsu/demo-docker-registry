@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z "$DOMAIN" ] ; then
   export DOMAIN=localhost
