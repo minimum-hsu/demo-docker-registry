@@ -1,0 +1,46 @@
+version: '2'
+
+services:
+  cert: # generate registry.crt and registry.key
+    image: minimum/ssl
+    environment:
+      - DOMAIN=registry.demo.com
+      - SUBJECT=/C=TW/ST=Taiwan/L=Taipei/O=Demo/OU=Demo
+    volumes:
+      - ./generate_certs.sh:/generate_certs.sh:ro
+      - ./certs/demo.com:/ca:ro
+      - registry:/certs
+    command: sh -c "/generate_certs.sh"
+
+  auth:
+    image: registry:2
+    entrypoint: htpasswd
+    command: "-Bbc /auth/htpasswd username password"
+    volumes:
+      - htpasswd:/auth
+
+  registry:
+    image: registry:2
+    restart: always
+    ports:
+      - 5000:5000
+    volumes:
+      - /data/registry:/var/lib/registry
+      - htpasswd:/auth:ro
+      - registry:/certs:ro
+    environment:
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt
+      - REGISTRY_HTTP_TLS_KEY=/certs/domain.key
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM=basic-realm
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+    depends_on:
+      - cert
+      - auth
+
+volumes:
+  htpasswd:
+    driver: local
+
+  registry:
+    driver: local
