@@ -1,0 +1,4 @@
+{
+  "hosts": ["unix:///var/run/docker.sock"],
+  "insecure-registries": ["registry.demo.com:5000"]
+}
